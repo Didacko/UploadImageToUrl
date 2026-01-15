@@ -171,6 +171,7 @@ class ImageToURL_0x0:
 NODE_CLASS_MAPPINGS = {
     "ImageToURL_0x0": ImageToURL_0x0,
 }
+
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ImageToURL_0x0": "Image → URL (multi-uploader)",
 }
