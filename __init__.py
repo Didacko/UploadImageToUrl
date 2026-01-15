@@ -1,4 +1,5 @@
 import os, io, re, base64, wave, requests
+from PIL import Image
 
 try:
     import torch
@@ -115,9 +116,25 @@ def _upload_bytes(filename: str, data: bytes, uploader: str = "auto", expire_tim
     raise last if last else RuntimeError("upload failed")
 
 
-# ============ resto del código (sin cambios) ============
-# Aquí irían las funciones _img_to_bytes, _samples_to_wav, etc.
-# Como no las incluiste en el mensaje, asumo que permanecen iguales
+# ============ funciones de conversión ============
+
+def _img_to_bytes(image, fmt="png", quality=95):
+    if torch is None or np is None:
+        raise ImportError("Torch and NumPy are required for image conversion.")
+    if image.dim() == 4:  # Si es un batch, toma la primera imagen
+        image = image[0]
+    image = image.cpu().numpy() * 255.0  # Normaliza a 0-255
+    image = image.astype(np.uint8)
+    # Asumimos formato HWC (altura, ancho, canales); si es CHW, transpone
+    if image.shape[0] < image.shape[2]:  # Probablemente CHW
+        image = np.transpose(image, (1, 2, 0))
+    pil_image = Image.fromarray(image)
+    buf = io.BytesIO()
+    if fmt == "jpeg":
+        pil_image.save(buf, format="JPEG", quality=quality)
+    else:
+        pil_image.save(buf, format=fmt.upper())
+    return buf.getvalue()
 
 
 class ImageToURL_0x0:
@@ -151,15 +168,9 @@ class ImageToURL_0x0:
         return (_ensure_https(url),)
 
 
-# El resto de clases (AudioToURL_0x0 y PathToURL_0x0) puedes dejarlas igual o adaptarlas si quieres.
-
 NODE_CLASS_MAPPINGS = {
     "ImageToURL_0x0": ImageToURL_0x0,
-    "AudioToURL_0x0": AudioToURL_0x0,
-    "PathToURL_0x0": PathToURL_0x0,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ImageToURL_0x0": "Image → URL (multi-uploader)",
-    "AudioToURL_0x0": "Audio → URL (multi-uploader)",
-    "PathToURL_0x0": "Path → URL (multi-uploader)",
 }
